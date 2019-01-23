@@ -1,6 +1,8 @@
 const express = require("express");
-const mongoose = require("mongoose");
+var exphbs  = require('express-handlebars');
+var logger = require("morgan");
 
+const mongoose = require("mongoose");
 const db = require("./models");
 
 const axios = require("axios");
@@ -9,24 +11,36 @@ const cheerio = require("cheerio");
 const app = express();
 const PORT = 3000;
 
+// Configure middleware
+// Make public a static folder
+app.use(express.static("public"));
+
+// Use morgan logger for logging requests
+app.use(logger("dev"));
+// Parse request body as JSON
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
+
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 mongoose.connect(MONGODB_URI);
 
 //obtains all the articles currently in mongo db
+// app.get("/", function (req, res) {
+//     db.Article.find({}, function (err, docs) {
+//         if (err) {
+//             throw err;
+//         }
+
+//         res.json(docs);
+//         //console.log(docs);
+//     });
+// });
+
+//scrapes the huffington post and displays to front page
 app.get("/", function (req, res) {
-    db.Article.find({}, function (err, docs) {
-        if (err) {
-            throw err;
-        }
-
-        res.json(docs);
-        //console.log(docs);
-    });
-});
-
-//scrapes the huffington post and adds articles to mongo db
-app.post("/scrape", function (req, res) {
-    res.send("Hello World");
     axios.get('https://www.huffingtonpost.com')
         .then(function (response) {
             if (response.status === 200) {
@@ -41,13 +55,15 @@ app.post("/scrape", function (req, res) {
 
                     headlines.push({
                         title: title,
-                        link: link
+                        link: 'https://www.huffingtonpost.com'+link
                     });
                 });
 
                 //console.log(headlines);
-                db.Article.insertMany(headlines, err => { if (err) throw err; });
-                res.send("scrape complete");
+                //db.Article.insertMany(headlines, err => { if (err) throw err; });
+                //res.send("scrape complete");
+                const context = {headlines: headlines};
+                res.render("index", context);
             }
         }).catch(error => console.log(error));
 });

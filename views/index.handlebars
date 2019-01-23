@@ -1,0 +1,14 @@
+<nav class="navbar navbar-expand-lg text-light bg-dark">
+    <h1 class="navbar-text ml-auto mr-auto">Newz Flash</h1>
+</nav>
+<main>
+    <h2 class="text-center">Scraped straight from Huff post</h2>
+    <div class="container">
+        {{#each headlines}}
+        <div class="card">
+            <a href={{link}} target="_blank"><h5 class="card-title headline">{{title}}</h5></a>
+        </div>
+        {{/each}}
+    </div>
+
+</main>
