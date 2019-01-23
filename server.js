@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
+const db = require("./models");
+
 const axios = require("axios");
 const cheerio = require("cheerio");
 
@@ -10,40 +12,9 @@ const PORT = 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 mongoose.connect(MONGODB_URI);
 
-const Schema = mongoose.Schema;
-
-const ArticleSchema = new Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    link: {
-        type: String,
-        required: true
-    },
-    note: Schema.Types.ObjectId,
-    saved: {
-        type: Boolean,
-        default: false
-    }
-});
-
-const NoteSchema = new Schema({
-    title: {
-        type: String,
-        default: ""
-    },
-    body: {
-        type: String,
-        default: ""
-    }
-});
-
-const ArticlesDB = mongoose.model("Articles", ArticleSchema);
-
 //obtains all the articles currently in mongo db
 app.get("/", function (req, res) {
-    ArticlesDB.find({}, function (err, docs) {
+    db.Article.find({}, function (err, docs) {
         if (err) {
             throw err;
         }
@@ -75,8 +46,7 @@ app.post("/scrape", function (req, res) {
                 });
 
                 //console.log(headlines);
-
-                ArticlesDB.insertMany(headlines, err => { if (err) throw err; });
+                db.Article.insertMany(headlines, err => { if (err) throw err; });
                 res.send("scrape complete");
             }
         }).catch(error => console.log(error));
